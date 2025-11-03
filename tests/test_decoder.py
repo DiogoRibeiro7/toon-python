@@ -298,15 +298,7 @@ class TestComplexStructures:
       level3:
         value: deep"""
         result = decode(toon)
-        assert result == {
-            "root": {
-                "level1": {
-                    "level2": {
-                        "level3": {"value": "deep"}
-                    }
-                }
-            }
-        }
+        assert result == {"root": {"level1": {"level2": {"level3": {"value": "deep"}}}}}
 
 
 class TestRoundtrip:

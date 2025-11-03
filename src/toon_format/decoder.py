@@ -26,6 +26,7 @@ from .types import DecodeOptions, JsonValue
 
 class ToonDecodeError(Exception):
     """TOON decoding error."""
+
     pass
 
 
@@ -57,18 +58,16 @@ def compute_depth(line: str, indent_size: int, strict: bool) -> int:
         return 0
 
     # Count leading spaces
-    leading_spaces = len(line) - len(line.lstrip(' '))
+    leading_spaces = len(line) - len(line.lstrip(" "))
 
     # Check for tabs in indentation (always error in strict mode)
-    if strict and '\t' in line[:leading_spaces]:
+    if strict and "\t" in line[:leading_spaces]:
         raise ToonDecodeError("Tabs are not allowed in indentation")
 
     # In strict mode, leading spaces must be exact multiple of indent_size
     if strict:
         if leading_spaces % indent_size != 0:
-            raise ToonDecodeError(
-                f"Indentation must be an exact multiple of {indent_size} spaces"
-            )
+            raise ToonDecodeError(f"Indentation must be an exact multiple of {indent_size} spaces")
         return leading_spaces // indent_size
     else:
         # Non-strict mode: use floor division
@@ -98,11 +97,11 @@ def unescape_string(value: str) -> str:
                 result.append(BACKSLASH)
             elif next_char == DOUBLE_QUOTE:
                 result.append(DOUBLE_QUOTE)
-            elif next_char == 'n':
+            elif next_char == "n":
                 result.append(NEWLINE)
-            elif next_char == 'r':
+            elif next_char == "r":
                 result.append(CARRIAGE_RETURN)
-            elif next_char == 't':
+            elif next_char == "t":
                 result.append(TAB)
             else:
                 raise ToonDecodeError(f"Invalid escape sequence: \\{next_char}")
@@ -110,7 +109,7 @@ def unescape_string(value: str) -> str:
         else:
             result.append(value[i])
             i += 1
-    return ''.join(result)
+    return "".join(result)
 
 
 def parse_primitive(token: str) -> JsonValue:
@@ -146,13 +145,13 @@ def parse_primitive(token: str) -> JsonValue:
     # Must reject leading zeros like "05", "0001"
     if token:
         # Check for forbidden leading zeros
-        if re.match(r'^0\d+$', token):
+        if re.match(r"^0\d+$", token):
             # Leading zero like "05" -> string
             return token
 
         try:
             # Try int first
-            if '.' not in token and 'e' not in token.lower():
+            if "." not in token and "e" not in token.lower():
                 return int(token)
             # Then float
             return float(token)
@@ -191,7 +190,7 @@ def parse_delimited_values(line: str, delimiter: str) -> List[str]:
             i += 1
         elif char == delimiter and not in_quotes:
             # Split on unquoted delimiter
-            tokens.append(''.join(current))
+            tokens.append("".join(current))
             current = []
             i += 1
             continue
@@ -202,7 +201,7 @@ def parse_delimited_values(line: str, delimiter: str) -> List[str]:
 
     # Add final token
     if current or tokens:  # Include empty final token if there was a delimiter
-        tokens.append(''.join(current))
+        tokens.append("".join(current))
 
     return tokens
 
@@ -238,10 +237,10 @@ def parse_header(line: str) -> Optional[Tuple[Optional[str], int, str, Optional[
         return None
 
     # Parse bracket content: [#?N<delim?>]
-    bracket_content = line[bracket_start + 1:bracket_end]
+    bracket_content = line[bracket_start + 1 : bracket_end]
 
     # Remove optional # marker
-    if bracket_content.startswith('#'):
+    if bracket_content.startswith("#"):
         bracket_content = bracket_content[1:]
 
     # Determine delimiter from bracket content
@@ -267,7 +266,7 @@ def parse_header(line: str) -> Optional[Tuple[Optional[str], int, str, Optional[
 
     # Check for fields segment
     fields = None
-    after_bracket = line[bracket_end + 1:].strip()
+    after_bracket = line[bracket_end + 1 :].strip()
 
     if after_bracket.startswith(OPEN_BRACE):
         brace_end = after_bracket.find(CLOSE_BRACE)
@@ -279,7 +278,7 @@ def parse_header(line: str) -> Optional[Tuple[Optional[str], int, str, Optional[
         field_tokens = parse_delimited_values(fields_content, delimiter)
         fields = [parse_key(f.strip()) for f in field_tokens]
 
-        after_bracket = after_bracket[brace_end + 1:].strip()
+        after_bracket = after_bracket[brace_end + 1 :].strip()
 
     # Must end with colon
     if not after_bracket.startswith(COLON):
@@ -334,7 +333,7 @@ def split_key_value(line: str) -> Tuple[str, str]:
             i += 1  # Skip next char
         elif char == COLON and not in_quotes:
             key = line[:i].strip()
-            value = line[i + 1:].strip()
+            value = line[i + 1 :].strip()
             return (key, value)
 
         i += 1
@@ -362,7 +361,7 @@ def decode(input_str: str, options: Optional[DecodeOptions] = None) -> JsonValue
     strict = options.strict
 
     # Split into lines
-    raw_lines = input_str.split('\n')
+    raw_lines = input_str.split("\n")
 
     # Process lines: compute depth and filter blanks outside arrays
     lines: List[Line] = []
@@ -415,10 +414,7 @@ def decode(input_str: str, options: Optional[DecodeOptions] = None) -> JsonValue
 
 
 def decode_object(
-    lines: List[Line],
-    start_idx: int,
-    parent_depth: int,
-    strict: bool
+    lines: List[Line], start_idx: int, parent_depth: int, strict: bool
 ) -> Dict[str, Any]:
     """Decode an object starting at given line index.
 
@@ -500,7 +496,7 @@ def decode_array_from_header(
     header_idx: int,
     header_depth: int,
     header_info: Tuple[Optional[str], int, str, Optional[List[str]]],
-    strict: bool
+    strict: bool,
 ) -> Tuple[List[Any], int]:
     """Decode array starting from a header line.
 
@@ -519,7 +515,7 @@ def decode_array_from_header(
 
     # Check if there's inline content after the colon
     colon_idx = header_line.rfind(COLON)
-    inline_content = header_line[colon_idx + 1:].strip()
+    inline_content = header_line[colon_idx + 1 :].strip()
 
     if inline_content:
         # Inline primitive array
@@ -541,7 +537,7 @@ def decode_array(
     start_idx: int,
     parent_depth: int,
     header_info: Tuple[Optional[str], int, str, Optional[List[str]]],
-    strict: bool
+    strict: bool,
 ) -> List[Any]:
     """Decode array (convenience wrapper).
 
@@ -560,10 +556,7 @@ def decode_array(
 
 
 def decode_inline_array(
-    content: str,
-    delimiter: str,
-    expected_length: int,
-    strict: bool
+    content: str, delimiter: str, expected_length: int, strict: bool
 ) -> List[Any]:
     """Decode an inline primitive array.
 
@@ -586,9 +579,7 @@ def decode_inline_array(
     values = [parse_primitive(token) for token in tokens]
 
     if strict and len(values) != expected_length:
-        raise ToonDecodeError(
-            f"Expected {expected_length} values, but got {len(values)}"
-        )
+        raise ToonDecodeError(f"Expected {expected_length} values, but got {len(values)}")
 
     return values
 
@@ -600,7 +591,7 @@ def decode_tabular_array(
     fields: List[str],
     delimiter: str,
     expected_length: int,
-    strict: bool
+    strict: bool,
 ) -> Tuple[List[Dict[str, Any]], int]:
     """Decode a tabular array.
 
@@ -662,9 +653,7 @@ def decode_tabular_array(
             break
 
     if strict and len(result) != expected_length:
-        raise ToonDecodeError(
-            f"Expected {expected_length} rows, but got {len(result)}"
-        )
+        raise ToonDecodeError(f"Expected {expected_length} rows, but got {len(result)}")
 
     return result, i
 
@@ -718,7 +707,7 @@ def decode_list_array(
     header_depth: int,
     delimiter: str,
     expected_length: int,
-    strict: bool
+    strict: bool,
 ) -> Tuple[List[Any], int]:
     """Decode a list-format array (mixed/non-uniform).
 
@@ -761,7 +750,7 @@ def decode_list_array(
             break
 
         # Remove "- " prefix
-        item_content = content[len(LIST_ITEM_MARKER):].strip()
+        item_content = content[len(LIST_ITEM_MARKER) :].strip()
 
         # Check what kind of item this is
         item_header = parse_header(item_content)
@@ -773,7 +762,7 @@ def decode_list_array(
                 # - [N]: inline array
                 colon_idx = item_content.find(COLON)
                 if colon_idx != -1:
-                    inline_part = item_content[colon_idx + 1:].strip()
+                    inline_part = item_content[colon_idx + 1 :].strip()
                     if inline_part:
                         # Inline primitive array
                         item_val = decode_inline_array(inline_part, item_delim, length, strict)
@@ -895,8 +884,6 @@ def decode_list_array(
             i += 1
 
     if strict and len(result) != expected_length:
-        raise ToonDecodeError(
-            f"Expected {expected_length} items, but got {len(result)}"
-        )
+        raise ToonDecodeError(f"Expected {expected_length} items, but got {len(result)}")
 
     return result, i

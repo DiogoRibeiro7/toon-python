@@ -127,7 +127,7 @@ def encode_string_literal(value: str, delimiter: str = COMMA) -> str:
     """
     if is_safe_unquoted(value, delimiter):
         return value
-    return f'{DOUBLE_QUOTE}{escape_string(value)}{DOUBLE_QUOTE}'
+    return f"{DOUBLE_QUOTE}{escape_string(value)}{DOUBLE_QUOTE}"
 
 
 def encode_key(key: str) -> str:
@@ -142,7 +142,7 @@ def encode_key(key: str) -> str:
     # Keys matching /^[A-Z_][\w.]*$/i don't require quotes
     if re.match(r"^[A-Z_][\w.]*$", key, re.IGNORECASE):
         return key
-    return f'{DOUBLE_QUOTE}{escape_string(key)}{DOUBLE_QUOTE}'
+    return f"{DOUBLE_QUOTE}{escape_string(key)}{DOUBLE_QUOTE}"
 
 
 def join_encoded_values(values: List[str], delimiter: Delimiter) -> str:
