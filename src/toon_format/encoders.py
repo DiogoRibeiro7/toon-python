@@ -1,6 +1,6 @@
 """Encoders for different value types."""
 
-from typing import List, Optional
+from typing import List, Optional, cast
 
 from .constants import LIST_ITEM_PREFIX
 from .normalize import (
@@ -12,7 +12,7 @@ from .normalize import (
     is_json_primitive,
 )
 from .primitives import encode_key, encode_primitive, format_header, join_encoded_values
-from .types import Depth, JsonArray, JsonObject, JsonValue, ResolvedEncodeOptions
+from .types import Depth, JsonArray, JsonObject, JsonPrimitive, JsonValue, ResolvedEncodeOptions
 from .writer import LineWriter
 
 
@@ -28,11 +28,11 @@ def encode_value(
         depth: Current indentation depth
     """
     if is_json_primitive(value):
-        writer.push(depth, encode_primitive(value, options.delimiter))
+        writer.push(depth, encode_primitive(cast(JsonPrimitive, value), options.delimiter))
     elif is_json_array(value):
-        encode_array(value, options, writer, depth, None)
+        encode_array(cast(JsonArray, value), options, writer, depth, None)
     elif is_json_object(value):
-        encode_object(value, options, writer, depth, None)
+        encode_object(cast(JsonObject, value), options, writer, depth, None)
 
 
 def encode_object(
@@ -71,11 +71,12 @@ def encode_key_value_pair(
         depth: Current indentation depth
     """
     if is_json_primitive(value):
-        writer.push(depth, f"{encode_key(key)}: {encode_primitive(value, options.delimiter)}")
+        primitive_str = encode_primitive(cast(JsonPrimitive, value), options.delimiter)
+        writer.push(depth, f"{encode_key(key)}: {primitive_str}")
     elif is_json_array(value):
-        encode_array(value, options, writer, depth, key)
+        encode_array(cast(JsonArray, value), options, writer, depth, key)
     elif is_json_object(value):
-        encode_object(value, options, writer, depth, key)
+        encode_object(cast(JsonObject, value), options, writer, depth, key)
 
 
 def encode_array(

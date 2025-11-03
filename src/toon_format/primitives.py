@@ -1,7 +1,7 @@
 """Primitive encoding utilities."""
 
 import re
-from typing import List, Optional
+from typing import List, Literal, Optional, Union
 
 from .constants import (
     BACKSLASH,
@@ -163,7 +163,7 @@ def format_header(
     length: int,
     fields: Optional[List[str]],
     delimiter: Delimiter,
-    length_marker: Optional[str],
+    length_marker: Union[str, Literal[False], None],
 ) -> str:
     """Format array/table header.
 

@@ -24,7 +24,7 @@ class EncodeOptions(TypedDict, total=False):
 
     indent: int
     delimiter: Delimiter
-    lengthMarker: Literal["#", False]
+    lengthMarker: Union[Literal["#"], Literal[False]]
 
 
 class ResolvedEncodeOptions:
@@ -34,11 +34,11 @@ class ResolvedEncodeOptions:
         self,
         indent: int = 2,
         delimiter: str = ",",
-        length_marker: Literal["#", False] = False,
+        length_marker: Union[Literal["#"], Literal[False]] = False,
     ) -> None:
         self.indent = indent
         self.delimiter = delimiter
-        self.lengthMarker = length_marker
+        self.lengthMarker: Union[str, Literal[False]] = length_marker
 
 
 class DecodeOptions:

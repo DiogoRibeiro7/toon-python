@@ -427,7 +427,7 @@ def decode_object(
     Returns:
         Decoded object
     """
-    result = {}
+    result: Dict[str, Any] = {}
     i = start_idx
     expected_depth = parent_depth if start_idx == 0 else parent_depth + 1
 
@@ -725,7 +725,7 @@ def decode_list_array(
     Raises:
         ToonDecodeError: If item count mismatch in strict mode
     """
-    result = []
+    result: List[Any] = []
     i = start_idx
     item_depth = header_depth + 1
 
@@ -772,7 +772,7 @@ def decode_list_array(
             else:
                 # - key[N]: array field in object
                 # This is an object with an array as its first field
-                item_obj = {}
+                item_obj: Dict[str, Any] = {}
                 array_val, next_i = decode_array_from_header(
                     lines, i, line.depth, item_header, strict
                 )
@@ -792,6 +792,7 @@ def decode_list_array(
                     field_header = parse_header(field_content)
                     if field_header is not None and field_header[0] is not None:
                         field_key, field_length, field_delim, field_fields = field_header
+                        assert field_key is not None  # Already checked above
                         field_val, next_i = decode_array_from_header(
                             lines, i, field_line.depth, field_header, strict
                         )
@@ -824,21 +825,21 @@ def decode_list_array(
         try:
             key_str, value_str = split_key_value(item_content)
             # It's an object item
-            item_obj = {}
+            obj_item: Dict[str, Any] = {}
 
             # First field
             key = parse_key(key_str)
             if not value_str:
                 # First field is nested object: fields at depth +2
                 nested = decode_object(lines, i + 1, line.depth + 1, strict)
-                item_obj[key] = nested
+                obj_item[key] = nested
                 # Skip nested content
                 i += 1
                 while i < len(lines) and lines[i].depth > line.depth + 1:
                     i += 1
             else:
                 # First field is primitive
-                item_obj[key] = parse_primitive(value_str)
+                obj_item[key] = parse_primitive(value_str)
                 i += 1
 
             # Remaining fields at depth +1
@@ -854,10 +855,11 @@ def decode_list_array(
                 field_header = parse_header(field_content)
                 if field_header is not None and field_header[0] is not None:
                     field_key, field_length, field_delim, field_fields = field_header
+                    assert field_key is not None  # Already checked above
                     field_val, next_i = decode_array_from_header(
                         lines, i, field_line.depth, field_header, strict
                     )
-                    item_obj[field_key] = field_val
+                    obj_item[field_key] = field_val
                     i = next_i
                     continue
 
@@ -867,17 +869,17 @@ def decode_list_array(
 
                     if not field_value_str:
                         # Nested object
-                        item_obj[field_key] = decode_object(lines, i + 1, field_line.depth, strict)
+                        obj_item[field_key] = decode_object(lines, i + 1, field_line.depth, strict)
                         i += 1
                         while i < len(lines) and lines[i].depth > field_line.depth:
                             i += 1
                     else:
-                        item_obj[field_key] = parse_primitive(field_value_str)
+                        obj_item[field_key] = parse_primitive(field_value_str)
                         i += 1
                 except ToonDecodeError:
                     break
 
-            result.append(item_obj)
+            result.append(obj_item)
         except ToonDecodeError:
             # Not an object, must be a primitive
             result.append(parse_primitive(item_content))

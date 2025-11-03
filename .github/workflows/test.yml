@@ -60,4 +60,3 @@ jobs:
 
       - name: Run mypy
         run: mypy src/toon_format
-        continue-on-error: true  # Mypy is informational only
