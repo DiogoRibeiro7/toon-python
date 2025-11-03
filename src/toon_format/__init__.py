@@ -1,13 +1,21 @@
 """
-Token-Oriented Object Notation (TOON) for Python.
+pytoon - Token-Oriented Object Notation for Python
 
-A compact, human-readable format designed for passing structured data
-to Large Language Models with significantly reduced token usage.
+A compact data format optimized for transmitting structured information to LLMs
+with 30-60% fewer tokens than JSON.
 """
 
-from toon_format.decoder import decode
-from toon_format.encoder import encode
-from toon_format.types import DecodeOptions, EncodeOptions
+from .decoder import ToonDecodeError, decode
+from .encoder import encode
+from .types import DecodeOptions, Delimiter, DelimiterKey, EncodeOptions
 
-__version__ = "0.1.0"
-__all__ = ["encode", "decode", "EncodeOptions", "DecodeOptions"]
+__version__ = "0.1.1"
+__all__ = [
+    "encode",
+    "decode",
+    "ToonDecodeError",
+    "Delimiter",
+    "DelimiterKey",
+    "EncodeOptions",
+    "DecodeOptions",
+]
