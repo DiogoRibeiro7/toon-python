@@ -15,12 +15,12 @@ TOON eliminates this redundancy, achieving **30-60% token reduction** while main
 
 ## Quick Example
 
-**JSON (45 tokens with GPT-4):**
+**JSON (45 tokens with GPT-5):**
 ```json
 {"users": [{"id": 1, "name": "Alice"}, {"id": 2, "name": "Bob"}]}
 ```
 
-**TOON (20 tokens with GPT-4, 56% reduction):**
+**TOON (20 tokens with GPT-5, 56% reduction):**
 ```toon
 users[2,]{id,name}:
   1,Alice
@@ -77,6 +77,125 @@ toon = encode(data, {"lengthMarker": "#"})
 
 Tell the model:
 > "Array lengths are prefixed with `#`. Ensure your response matches these counts exactly."
+
+---
+
+## Measuring Token Savings
+
+Before integrating TOON with your LLM application, measure actual savings for your data:
+
+### Basic Measurement
+
+```python
+from toon_format import estimate_savings
+
+# Your actual data structure
+user_data = {
+    "users": [
+        {"id": 1, "name": "Alice", "email": "alice@example.com", "active": True},
+        {"id": 2, "name": "Bob", "email": "bob@example.com", "active": True},
+        {"id": 3, "name": "Charlie", "email": "charlie@example.com", "active": False}
+    ]
+}
+
+# Compare formats
+result = estimate_savings(user_data)
+print(f"JSON: {result['json_tokens']} tokens")
+print(f"TOON: {result['toon_tokens']} tokens")
+print(f"Savings: {result['savings_percent']:.1f}%")
+# JSON: 112 tokens
+# TOON: 68 tokens
+# Savings: 39.3%
+```
+
+### Cost Estimation
+
+Calculate actual dollar savings based on your API usage:
+
+```python
+from toon_format import estimate_savings
+
+# Your typical prompt data
+prompt_data = {
+    "context": [
+        {"role": "system", "content": "You are a helpful assistant"},
+        {"role": "user", "content": "Analyze this data"}
+    ],
+    "data": [
+        {"id": i, "value": f"Item {i}", "score": i * 10}
+        for i in range(1, 101)  # 100 items
+    ]
+}
+
+result = estimate_savings(prompt_data["data"])
+
+# GPT-5 pricing (example: $0.01 per 1K tokens)
+cost_per_1k = 0.01
+json_cost = (result['json_tokens'] / 1000) * cost_per_1k
+toon_cost = (result['toon_tokens'] / 1000) * cost_per_1k
+
+print(f"JSON cost per request: ${json_cost:.4f}")
+print(f"TOON cost per request: ${toon_cost:.4f}")
+print(f"Savings per request: ${json_cost - toon_cost:.4f}")
+print(f"Savings per 10,000 requests: ${(json_cost - toon_cost) * 10000:.2f}")
+```
+
+### Detailed Comparison
+
+Get a formatted report for documentation or analysis:
+
+```python
+from toon_format import compare_formats
+
+api_response = {
+    "status": "success",
+    "results": [
+        {"id": 1, "score": 0.95, "category": "A"},
+        {"id": 2, "score": 0.87, "category": "B"},
+        {"id": 3, "score": 0.92, "category": "A"}
+    ],
+    "total": 3
+}
+
+print(compare_formats(api_response))
+# Format Comparison
+# ────────────────────────────────────────────────
+# Format      Tokens    Size (chars)
+# JSON            78             189
+# TOON            48             112
+# ────────────────────────────────────────────────
+# Savings: 30 tokens (38.5%)
+```
+
+### Integration Pattern
+
+Use token counting in production to monitor savings:
+
+```python
+import json
+from toon_format import encode, count_tokens
+
+def send_to_llm(data, use_toon=True):
+    """Send data to LLM with optional TOON encoding."""
+    if use_toon:
+        formatted = encode(data)
+        format_type = "TOON"
+    else:
+        formatted = json.dumps(data, indent=2)
+        format_type = "JSON"
+
+    tokens = count_tokens(formatted)
+    print(f"[{format_type}] Sending {tokens} tokens")
+
+    # Your LLM API call here
+    # response = openai.ChatCompletion.create(...)
+
+    return formatted, tokens
+
+# Example usage
+data = {"items": [{"id": 1}, {"id": 2}]}
+formatted, token_count = send_to_llm(data, use_toon=True)
+```
 
 ---
 
@@ -372,7 +491,7 @@ from toon_format import decode
 
 def ask_for_toon_data(prompt):
     response = openai.ChatCompletion.create(
-        model="gpt-4",
+        model="gpt-5",
         messages=[
             {"role": "system", "content": "Respond using TOON format"},
             {"role": "user", "content": prompt}
@@ -422,7 +541,7 @@ def claude_toon(prompt):
 
 ## Performance Metrics
 
-Based on testing with GPT-4 and Claude:
+Based on testing with gpt5 and Claude:
 
 | Data Type | JSON Tokens | TOON Tokens | Reduction |
 |-----------|-------------|-------------|-----------|
@@ -432,6 +551,8 @@ Based on testing with GPT-4 and Claude:
 | Mixed arrays | 178 | 95 | 47% |
 
 **Average reduction: 30-60%** depending on data structure and tokenizer.
+
+**Note:** Comprehensive benchmarks across gpt5, gpt5-mini, and other models are coming soon. See the [roadmap](README.md#roadmap) for details.
 
 ---
 

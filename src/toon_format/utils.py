@@ -53,7 +53,7 @@ def _get_tokenizer():
     """Get cached tiktoken tokenizer for o200k_base encoding.
 
     Returns:
-        tiktoken.Encoding: The o200k_base tokenizer (GPT-4o/GPT-4).
+        tiktoken.Encoding: The o200k_base tokenizer (gpt5/gpt5-mini).
 
     Raises:
         RuntimeError: If tiktoken is not installed.
@@ -67,7 +67,7 @@ def count_tokens(text: str, encoding: str = "o200k_base") -> int:
 
     Args:
         text: The string to tokenize.
-        encoding: Tokenizer encoding name (default: 'o200k_base' for GPT-4o/GPT-4).
+        encoding: Tokenizer encoding name (default: 'o200k_base' for gpt5/gpt5-mini).
                   Other options include 'cl100k_base' (GPT-3.5), 'p50k_base' (older models).
 
     Returns:

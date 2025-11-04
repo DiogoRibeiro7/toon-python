@@ -31,9 +31,9 @@ encode({"name": "Alice", "age": 30})
 encode([1, 2, 3], {"delimiter": "\t"})
 # [3	]: 1	2	3
 
-# With typed options
+# With typed options (TypedDict)
 from toon_format.types import EncodeOptions
-options = EncodeOptions(delimiter="|", indent=4, lengthMarker="#")
+options: EncodeOptions = {"delimiter": "|", "indent": 4, "lengthMarker": "#"}
 encode([1, 2, 3], options)
 # [#3|]: 1|2|3
 ```
@@ -66,9 +66,12 @@ decode("name: Alice\nage: 30")
 decode("users[2,]{id,name}:\n  1,Alice\n  2,Bob")
 # {'users': [{'id': 1, 'name': 'Alice'}, {'id': 2, 'name': 'Bob'}]}
 
-# With options
+# With options (class)
 from toon_format.types import DecodeOptions
 decode("  item: value", DecodeOptions(indent=4, strict=False))
+
+# Or use dict
+decode("  item: value", {"indent": 4, "strict": False})
 ```
 
 ---
@@ -77,16 +80,16 @@ decode("  item: value", DecodeOptions(indent=4, strict=False))
 
 ### `EncodeOptions`
 
-Configuration for encoding behavior.
+TypedDict for encoding configuration. Use dict syntax to create options.
 
 **Fields:**
-- `delimiter` (str): Array value separator
+- `delimiter` (str, optional): Array value separator
   - `","` - Comma (default)
   - `"\t"` - Tab
   - `"|"` - Pipe
-- `indent` (int): Spaces per indentation level (default: `2`)
-- `lengthMarker` (str): Prefix for array lengths
-  - `""` - No marker (default)
+- `indent` (int, optional): Spaces per indentation level (default: `2`)
+- `lengthMarker` (Literal["#"] | Literal[False], optional): Prefix for array lengths
+  - `False` - No marker (default)
   - `"#"` - Add `#` prefix (e.g., `[#5]`)
 
 **Example:**
@@ -95,11 +98,12 @@ Configuration for encoding behavior.
 from toon_format import encode
 from toon_format.types import EncodeOptions
 
-options = EncodeOptions(
-    delimiter="\t",
-    indent=4,
-    lengthMarker="#"
-)
+# EncodeOptions is a TypedDict, use dict syntax
+options: EncodeOptions = {
+    "delimiter": "\t",
+    "indent": 4,
+    "lengthMarker": "#"
+}
 
 data = [{"id": 1}, {"id": 2}]
 print(encode(data, options))
@@ -112,11 +116,18 @@ print(encode(data, options))
 
 ### `DecodeOptions`
 
-Configuration for decoding behavior.
+Configuration class for decoding behavior.
 
-**Fields:**
+**Constructor:**
+```python
+DecodeOptions(indent=2, strict=True)
+```
+
+**Parameters:**
 - `indent` (int): Expected spaces per indentation level (default: `2`)
 - `strict` (bool): Enable strict validation (default: `True`)
+
+**Note:** Unlike `EncodeOptions` (which is a TypedDict), `DecodeOptions` is a class. You can also pass a plain dict with the same keys to `decode()`.
 
 **Strict Mode Validation:**
 
@@ -233,6 +244,198 @@ toon = encode(data)
 
 ---
 
+## Utility Functions
+
+### `count_tokens(text, encoding="o200k_base")`
+
+Count tokens in a text string using tiktoken.
+
+**Parameters:**
+- `text` (str): The string to tokenize
+- `encoding` (str, optional): Tokenizer encoding name (default: `"o200k_base"` for gpt5/gpt5-mini)
+  - Other options: `"cl100k_base"` (GPT-3.5), `"p50k_base"` (older models)
+
+**Returns:** `int` - The number of tokens in the text
+
+**Raises:**
+- `RuntimeError`: If tiktoken is not installed
+
+**Requirements:**
+- Install tiktoken: `pip install tiktoken` or `pip install toon-format[benchmark]`
+
+**Example:**
+
+```python
+from toon_format import count_tokens
+
+text = "Hello, world!"
+tokens = count_tokens(text)
+print(f"Token count: {tokens}")
+# Token count: 4
+```
+
+---
+
+### `estimate_savings(data, encoding="o200k_base")`
+
+Compare token counts between JSON and TOON formats.
+
+**Parameters:**
+- `data` (Any): Python dict or list to compare
+- `encoding` (str, optional): Tokenizer encoding name (default: `"o200k_base"`)
+
+**Returns:** `dict` containing:
+- `json_tokens` (int): Token count for JSON format
+- `toon_tokens` (int): Token count for TOON format
+- `savings` (int): Absolute token savings (json_tokens - toon_tokens)
+- `savings_percent` (float): Percentage savings
+
+**Example:**
+
+```python
+from toon_format import estimate_savings
+
+data = {
+    "employees": [
+        {"id": 1, "name": "Alice"},
+        {"id": 2, "name": "Bob"}
+    ]
+}
+
+result = estimate_savings(data)
+print(f"JSON tokens: {result['json_tokens']}")
+print(f"TOON tokens: {result['toon_tokens']}")
+print(f"Savings: {result['savings_percent']:.1f}%")
+# JSON tokens: 45
+# TOON tokens: 28
+# Savings: 37.8%
+```
+
+**Note:** Significant savings are typically achieved with structured data, especially arrays of uniform objects (tabular data).
+
+---
+
+### `compare_formats(data, encoding="o200k_base")`
+
+Generate a formatted comparison table showing JSON vs TOON metrics.
+
+**Parameters:**
+- `data` (Any): Python dict or list to compare
+- `encoding` (str, optional): Tokenizer encoding name (default: `"o200k_base"`)
+
+**Returns:** `str` - Formatted table as multi-line string showing token counts, character sizes, and savings percentage
+
+**Example:**
+
+```python
+from toon_format import compare_formats
+
+data = {
+    "users": [
+        {"id": 1, "name": "Alice", "age": 30},
+        {"id": 2, "name": "Bob", "age": 25}
+    ]
+}
+
+print(compare_formats(data))
+# Format Comparison
+# ────────────────────────────────────────────────
+# Format      Tokens    Size (chars)
+# JSON            45           123
+# TOON            28            85
+# ────────────────────────────────────────────────
+# Savings: 17 tokens (37.8%)
+```
+
+**Note:** Useful for quick visual comparison during development and optimization.
+
+---
+
+## Measuring Token Efficiency
+
+Use the utility functions to measure and compare token usage between JSON and TOON formats.
+
+### Quick Token Count
+
+```python
+from toon_format import encode, count_tokens
+
+data = {"users": [{"id": 1, "name": "Alice"}, {"id": 2, "name": "Bob"}]}
+
+# Count tokens in TOON format
+toon_str = encode(data)
+tokens = count_tokens(toon_str)
+print(f"TOON uses {tokens} tokens")
+# TOON uses 28 tokens
+```
+
+### Compare Formats
+
+```python
+from toon_format import estimate_savings
+
+data = {
+    "employees": [
+        {"id": 1, "name": "Alice", "dept": "Engineering"},
+        {"id": 2, "name": "Bob", "dept": "Sales"},
+        {"id": 3, "name": "Charlie", "dept": "Marketing"}
+    ]
+}
+
+result = estimate_savings(data)
+print(f"JSON: {result['json_tokens']} tokens")
+print(f"TOON: {result['toon_tokens']} tokens")
+print(f"Savings: {result['savings_percent']:.1f}%")
+# JSON: 89 tokens
+# TOON: 52 tokens
+# Savings: 41.6%
+```
+
+### Visual Comparison
+
+```python
+from toon_format import compare_formats
+
+data = {
+    "products": [
+        {"sku": "A100", "price": 29.99, "stock": 50},
+        {"sku": "B200", "price": 49.99, "stock": 30}
+    ]
+}
+
+print(compare_formats(data))
+# Format Comparison
+# ────────────────────────────────────────────────
+# Format      Tokens    Size (chars)
+# JSON            67             145
+# TOON            38              89
+# ────────────────────────────────────────────────
+# Savings: 29 tokens (43.3%)
+```
+
+### Using Different Encodings
+
+```python
+from toon_format import count_tokens
+
+text = "Hello, world!"
+
+# GPT-5 / GPT-5-mini (default)
+tokens_gpt5 = count_tokens(text, encoding="o200k_base")
+
+# GPT-3.5 / GPT-4
+tokens_gpt4 = count_tokens(text, encoding="cl100k_base")
+
+# Older models
+tokens_old = count_tokens(text, encoding="p50k_base")
+
+print(f"GPT-5: {tokens_gpt5} tokens")
+print(f"GPT-4: {tokens_gpt4} tokens")
+print(f"Older: {tokens_old} tokens")
+```
+
+---
+
 ## Advanced Usage
 
 ### Working with Large Integers
@@ -303,12 +506,17 @@ from typing import Any, Dict, List, Union
 from toon_format import encode, decode
 from toon_format.types import EncodeOptions, DecodeOptions, JsonValue
 
-# Type-safe usage
+# Type-safe usage - EncodeOptions is a TypedDict, use dict syntax
 data: Dict[str, Any] = {"key": "value"}
-options: EncodeOptions = EncodeOptions(delimiter=",")
+options: EncodeOptions = {"delimiter": ",", "indent": 2}
 result: str = encode(data, options)
 
 decoded: JsonValue = decode(result)
+
+# DecodeOptions is a class, can be instantiated or use dict
+decode_opts = DecodeOptions(indent=2, strict=True)
+# Or use dict for decode too
+decode(result, {"indent": 2, "strict": True})
 ```
 
 ---

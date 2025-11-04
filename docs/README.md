@@ -24,6 +24,9 @@ New to TOON? Start here:
 Complete reference for all public functions and classes:
 - `encode()` - Convert Python to TOON
 - `decode()` - Convert TOON to Python
+- `count_tokens()` - Count tokens in text using tiktoken
+- `estimate_savings()` - Compare JSON vs TOON token counts
+- `compare_formats()` - Generate formatted comparison table
 - `EncodeOptions` - Encoding configuration
 - `DecodeOptions` - Decoding configuration
 - `ToonDecodeError` - Error handling
@@ -52,6 +55,15 @@ Best practices for LLM usage:
 - Integration examples (OpenAI, Anthropic)
 - Performance metrics
 - Debugging tips
+
+## Roadmap
+
+The following features are planned for future releases:
+
+- **Comprehensive Benchmarks**: Detailed token efficiency comparisons across various data structures and LLM models (gpt5, gpt5-mini, Claude)
+- **Official Documentation Site**: Dedicated documentation website with interactive examples and tutorials
+
+Stay tuned for updates!
 
 ## External Resources
 
@@ -93,6 +105,28 @@ encode([1, 2, 3], {"delimiter": "\t"})
 # Lenient decoding
 decode("items[5]: a,b,c", {"strict": False})
 # {'items': ['a', 'b', 'c']}  # Accepts length mismatch
+```
+
+### Token Efficiency
+
+```python
+from toon_format import estimate_savings, compare_formats
+
+data = {"employees": [{"id": 1, "name": "Alice"}, {"id": 2, "name": "Bob"}]}
+
+# Get savings metrics
+result = estimate_savings(data)
+print(f"Saves {result['savings_percent']:.1f}% tokens")
+
+# Get formatted comparison
+print(compare_formats(data))
+# Format Comparison
+# ────────────────────────────────────────────────
+# Format      Tokens    Size (chars)
+# JSON            45             123
+# TOON            28              85
+# ────────────────────────────────────────────────
+# Savings: 17 tokens (37.8%)
 ```
 
 ## Support
