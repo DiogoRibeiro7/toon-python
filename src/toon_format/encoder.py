@@ -1,34 +1,56 @@
-"""TOON encoder implementation."""
+# Copyright (c) 2025 TOON Format Organization
+# SPDX-License-Identifier: MIT
+"""Core TOON encoding functionality.
 
-from typing import Any
+This module provides the main `encode()` function for converting Python values
+to TOON format strings. Handles option resolution and coordinates the encoding
+pipeline: normalization → encoding → writing.
+"""
 
-from toon_format.types import EncodeOptions
+from typing import Any, Optional
+
+from .constants import DEFAULT_DELIMITER, DELIMITERS
+from .encoders import encode_value
+from .normalize import normalize_value
+from .types import EncodeOptions, ResolvedEncodeOptions
+from .writer import LineWriter
 
 
-def encode(value: Any, options: EncodeOptions | None = None) -> str:
-    """Convert a value to TOON format.
+def encode(value: Any, options: Optional[EncodeOptions] = None) -> str:
+    """Encode a value into TOON format.
 
     Args:
-        value: Any JSON-serializable value (object, array, primitive, or nested structure).
-               Non-JSON-serializable values (functions, undefined, non-finite numbers) are
-               converted to null. Dates are converted to ISO strings, and BigInts are emitted
-               as decimal integers.
-        options: Optional encoding options:
-            - indent: Number of spaces per indentation level (default: 2)
-            - delimiter: Delimiter for array values and tabular rows (default: ',')
-            - length_marker: Optional marker to prefix array lengths (default: False)
+        value: The value to encode (must be JSON-serializable)
+        options: Optional encoding options
 
     Returns:
-        A TOON-formatted string with no trailing newline or spaces.
-
-    Examples:
-        >>> encode({"items": [{"sku": "A1", "qty": 2}, {"sku": "B2", "qty": 1}]})
-        'items[2]{sku,qty}:\\n  A1,2\\n  B2,1'
-
-        >>> encode({"tags": ["foo", "bar"]}, {"delimiter": "\\t"})
-        'tags[2    ]: foo    bar'
-
-        >>> encode([1, 2, 3], {"length_marker": "#"})
-        '[#3]: 1,2,3'
+        TOON-formatted string
     """
-    raise NotImplementedError("TOON encoder is not yet implemented")
+    normalized = normalize_value(value)
+    resolved_options = resolve_options(options)
+    writer = LineWriter(resolved_options.indent)
+    encode_value(normalized, resolved_options, writer, 0)
+    return writer.to_string()
+
+
+def resolve_options(options: Optional[EncodeOptions]) -> ResolvedEncodeOptions:
+    """Resolve encoding options with defaults.
+
+    Args:
+        options: Optional user-provided options
+
+    Returns:
+        Resolved options with defaults applied
+    """
+    if options is None:
+        return ResolvedEncodeOptions()
+
+    indent = options.get("indent", 2)
+    delimiter = options.get("delimiter", DEFAULT_DELIMITER)
+    length_marker = options.get("lengthMarker", False)
+
+    # Resolve delimiter if it's a key
+    if delimiter in DELIMITERS:
+        delimiter = DELIMITERS[delimiter]
+
+    return ResolvedEncodeOptions(indent=indent, delimiter=delimiter, length_marker=length_marker)
