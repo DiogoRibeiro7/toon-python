@@ -16,8 +16,8 @@ Note: TOON spec v1.3 compliance is tested in test_spec_fixtures.py using
 official fixtures from https://github.com/toon-format/spec
 """
 
-import pytest
 from decimal import Decimal
+
 from toon_format import decode, encode
 
 

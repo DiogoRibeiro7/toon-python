@@ -327,6 +327,5 @@ class TestEdgeCases:
 
         # Row with quoted field containing colon
         row_with_quote = 'Alice,"30:manager",Engineer'
-        first_comma = find_unquoted_char(row_with_quote, ",")
         first_colon = find_unquoted_char(row_with_quote, ":")
         assert first_colon == -1  # Colon only in quotes = row

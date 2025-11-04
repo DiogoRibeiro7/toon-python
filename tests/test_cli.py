@@ -1,9 +1,7 @@
 """Integration tests for the CLI module."""
 
 import json
-import sys
 from io import StringIO
-from pathlib import Path
 from unittest.mock import MagicMock, patch
 
 import pytest
@@ -239,7 +237,7 @@ class TestCLIMain:
         input_file = tmp_path / "input.json"
         input_file.write_text('{"items": [1, 2, 3]}')
 
-        with patch("sys.stdout", new_callable=StringIO) as mock_stdout:
+        with patch("sys.stdout", new_callable=StringIO):
             with patch("sys.argv", ["toon", str(input_file), "--encode", "--delimiter", "|"]):
                 result = main()
                 assert result == 0
@@ -249,7 +247,7 @@ class TestCLIMain:
         input_file = tmp_path / "input.json"
         input_file.write_text('{"outer": {"inner": 1}}')
 
-        with patch("sys.stdout", new_callable=StringIO) as mock_stdout:
+        with patch("sys.stdout", new_callable=StringIO):
             with patch("sys.argv", ["toon", str(input_file), "--encode", "--indent", "4"]):
                 result = main()
                 assert result == 0
@@ -259,7 +257,7 @@ class TestCLIMain:
         input_file = tmp_path / "input.json"
         input_file.write_text('{"items": [1, 2, 3]}')
 
-        with patch("sys.stdout", new_callable=StringIO) as mock_stdout:
+        with patch("sys.stdout", new_callable=StringIO):
             with patch("sys.argv", ["toon", str(input_file), "--encode", "--length-marker"]):
                 result = main()
                 assert result == 0
@@ -269,7 +267,7 @@ class TestCLIMain:
         input_file = tmp_path / "input.toon"
         input_file.write_text("name: Test")
 
-        with patch("sys.stdout", new_callable=StringIO) as mock_stdout:
+        with patch("sys.stdout", new_callable=StringIO):
             with patch("sys.argv", ["toon", str(input_file), "--decode", "--no-strict"]):
                 result = main()
                 assert result == 0
@@ -307,7 +305,7 @@ class TestCLIMain:
     def test_error_reading_input(self):
         """Test error when reading input fails."""
         mock_stdin = MagicMock()
-        mock_stdin.read.side_effect = IOError("Read failed")
+        mock_stdin.read.side_effect = OSError("Read failed")
 
         with patch("sys.stdin", mock_stdin):
             with patch("sys.stderr", new_callable=StringIO) as mock_stderr:

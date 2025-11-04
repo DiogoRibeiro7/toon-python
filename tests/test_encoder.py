@@ -30,7 +30,7 @@ class TestPythonEncoderAPI:
         """Ensure encode returns native Python str, not bytes or custom type."""
         result = encode({"id": 123})
         assert isinstance(result, str)
-        assert type(result) == str  # Not a subclass
+        assert type(result) is str  # Not a subclass
 
     def test_encode_handles_none_gracefully(self):
         """Test encoding None doesn't crash (Python-specific edge case)."""

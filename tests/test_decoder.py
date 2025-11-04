@@ -39,14 +39,14 @@ class TestPythonDecoderAPI:
         toon = "id: 123"
         result = decode(toon)
         assert isinstance(result, dict)
-        assert type(result) == dict  # Not a subclass
+        assert type(result) is dict  # Not a subclass
 
     def test_decode_returns_python_list(self):
         """Ensure decode returns native Python list for arrays."""
         toon = "[3]: 1,2,3"
         result = decode(toon)
         assert isinstance(result, list)
-        assert type(result) == list  # Not a subclass
+        assert type(result) is list  # Not a subclass
 
 
 class TestPythonErrorHandling:

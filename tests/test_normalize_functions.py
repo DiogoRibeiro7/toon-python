@@ -4,11 +4,9 @@ This module tests the normalize module's functions directly to ensure
 full coverage of edge cases and error paths.
 """
 
-import sys
-from collections import OrderedDict, UserDict
+from collections import OrderedDict
 from datetime import date, datetime
 from decimal import Decimal
-from unittest.mock import MagicMock
 
 import pytest
 

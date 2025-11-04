@@ -11,8 +11,9 @@ Python type normalization is tested in test_normalization.py.
 """
 
 import pytest
-from toon_format import encode, decode, ToonDecodeError
-from toon_format.types import EncodeOptions, DecodeOptions
+
+from toon_format import ToonDecodeError, decode, encode
+from toon_format.types import DecodeOptions, EncodeOptions
 
 
 class TestEncodeAPI:

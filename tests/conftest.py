@@ -3,8 +3,9 @@
 This module provides reusable test data and fixtures following pytest best practices.
 """
 
-import pytest
 from typing import Any, Dict, List
+
+import pytest
 
 
 # Simple test data fixtures

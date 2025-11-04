@@ -7,13 +7,12 @@ from https://github.com/toon-format/spec/tree/main/tests/fixtures
 
 import json
 from pathlib import Path
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List
 
 import pytest
 
 from toon_format import ToonDecodeError, decode, encode
 from toon_format.types import DecodeOptions, EncodeOptions
-
 
 FIXTURES_DIR = Path(__file__).parent / "fixtures"
 DECODE_DIR = FIXTURES_DIR / "decode"
@@ -22,7 +21,7 @@ ENCODE_DIR = FIXTURES_DIR / "encode"
 
 def load_fixture_file(filepath: Path) -> Dict[str, Any]:
     """Load a fixture JSON file."""
-    with open(filepath, "r", encoding="utf-8") as f:
+    with open(filepath, encoding="utf-8") as f:
         return json.load(f)
 
 
