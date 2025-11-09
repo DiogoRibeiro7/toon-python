@@ -15,7 +15,7 @@ Create accounts on both platforms:
 
 The publish workflow uses GitHub environments with trusted publishing (no API tokens needed!).
 
-#### Set up environments in GitHub:
+#### Set up environments in GitHub
 
 1. Go to your repository Settings > Environments
 2. Create two environments:
@@ -26,9 +26,10 @@ The publish workflow uses GitHub environments with trusted publishing (no API to
      - Required reviewers (for production releases)
      - Wait timer (optional delay before deployment)
 
-#### Configure Trusted Publishers:
+#### Configure Trusted Publishers
 
 **For TestPyPI:**
+
 1. Log in to https://test.pypi.org
 2. Go to Account Settings > Publishing
 3. Add a new pending publisher:
@@ -39,6 +40,7 @@ The publish workflow uses GitHub environments with trusted publishing (no API to
    - Environment: `testpypi`
 
 **For PyPI:**
+
 1. Log in to https://pypi.org
 2. Go to Account Settings > Publishing
 3. Add a new pending publisher:
@@ -61,13 +63,18 @@ The publish workflow uses GitHub environments with trusted publishing (no API to
 2. **Update changelog** (if exists) or create release notes
 
 3. **Run tests locally**:
+
+   The `tox` package will run tests for all supported Python versions. Run this with `uv run tox`.
+
    ```bash
+   uv run tox
    uv run pytest
    uv run ruff check .
    uv run mypy src/toon_format
    ```
 
 4. **Build and test locally**:
+
    ```bash
    # Clean previous builds
    rm -rf dist/ build/ *.egg-info
@@ -88,6 +95,7 @@ The publish workflow uses GitHub environments with trusted publishing (no API to
 ### Step 2: Commit and Tag
 
 1. **Commit version changes**:
+
    ```bash
    git add pyproject.toml src/toon_format/__init__.py
    git commit -m "Bump version to X.Y.Z"
@@ -131,7 +139,7 @@ Before publishing to production PyPI, test on TestPyPI:
 
 ### Step 5: Verify the Release
 
-1. **Check PyPI**: https://pypi.org/project/toon_format/
+1. **Check PyPI**: [https://pypi.org/project/toon_format/](https://pypi.org/project/toon_format/)
 2. **Test installation**:
    ```bash
    pip install toon_format
@@ -147,6 +155,7 @@ Before publishing to production PyPI, test on TestPyPI:
 ### Build fails with "metadata missing"
 
 This is usually a configuration issue in `pyproject.toml`. Verify:
+
 - All required fields are present (name, version, description, etc.)
 - Project URLs are properly formatted
 - Author email is valid
@@ -154,6 +163,7 @@ This is usually a configuration issue in `pyproject.toml`. Verify:
 ### Trusted publishing fails
 
 If the trusted publisher configuration fails:
+
 1. Verify the environment name matches exactly
 2. Check that the repository owner and name are correct
 3. Ensure the workflow file path is correct (`publish.yml`)
@@ -162,6 +172,7 @@ If the trusted publisher configuration fails:
 ### Package already exists on PyPI
 
 PyPI doesn't allow overwriting published versions. You must:
+
 1. Increment the version number
 2. Create a new tag
 3. Publish the new version
@@ -174,7 +185,7 @@ Follow [Semantic Versioning](https://semver.org/):
 - **MINOR version** (0.X.0): New functionality, backward compatible
 - **PATCH version** (0.0.X): Bug fixes, backward compatible
 
-### Agreed Roadmap (from Discussion #18):
+### Agreed Roadmap (from Discussion #18)
 
 - **0.8.x** - Initial code set, tests, documentation, migration from toon-llm
 - **0.9.x** - Serializer, spec compliance, publishing to PyPI (test and prod)
@@ -182,6 +193,7 @@ Follow [Semantic Versioning](https://semver.org/):
 - **1.0.0** - Official stable release 🎉
 
 Examples:
+
 - `0.9.0-beta.1` - First beta release for testing
 - `0.9.0-beta.2` - Second beta with fixes
 - `0.9.0` - First minor release with new features
@@ -192,7 +204,8 @@ Examples:
 
 Before each release, verify:
 
-- [ ] All tests pass (`uv run pytest`)
+- [ ] All tests pass for the latest stable Python version (`uv run pytest`)
+- [ ] All tests pass for **all** supported Python versions (`uv run tox`)
 - [ ] Linting passes (`uv run ruff check .`)
 - [ ] Type checking passes (`uv run mypy src/toon_format`)
 - [ ] Version updated in `pyproject.toml` and `src/toon_format/__init__.py`
