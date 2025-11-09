@@ -36,6 +36,12 @@ jobs:
       - name: Run tests with coverage
         run: uv run pytest --cov=toon_format --cov-report=xml --cov-report=term --cov-report=html --cov-fail-under=85
 
+      - name: Run linting
+        run: uv run ruff check .
+
+      - name: Run type checking
+        run: uv run mypy src/toon_format
+
       - name: Upload coverage reports as artifact
         uses: actions/upload-artifact@v4
         if: matrix.python-version == '3.14'
