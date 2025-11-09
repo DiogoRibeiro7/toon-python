@@ -8,6 +8,9 @@ authors = [
 ]
 requires-python = ">=3.10"
 dependencies = [
+    "mypy>=1.18.2",
+    "pytest>=9.0.0",
+    "ruff>=0.14.4",
     "tox>=4.25.0",
     "tox-uv>=1.13.1",
 ]
