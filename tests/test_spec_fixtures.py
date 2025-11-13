@@ -168,23 +168,27 @@ def get_fixture_stats() -> Dict[str, Any]:
     decode_files = sorted(DECODE_DIR.glob("*.json"))
     encode_files = sorted(ENCODE_DIR.glob("*.json"))
 
+    decode_file_count = len(decode_files)
+    decode_test_count = sum(count_tests_in_fixture(f) for f in decode_files)
     decode_stats = {
-        "files": len(decode_files),
-        "tests": sum(count_tests_in_fixture(f) for f in decode_files),
+        "files": decode_file_count,
+        "tests": decode_test_count,
         "by_file": {f.stem: count_tests_in_fixture(f) for f in decode_files},
     }
 
+    encode_file_count = len(encode_files)
+    encode_test_count = sum(count_tests_in_fixture(f) for f in encode_files)
     encode_stats = {
-        "files": len(encode_files),
-        "tests": sum(count_tests_in_fixture(f) for f in encode_files),
+        "files": encode_file_count,
+        "tests": encode_test_count,
         "by_file": {f.stem: count_tests_in_fixture(f) for f in encode_files},
     }
 
     return {
         "decode": decode_stats,
         "encode": encode_stats,
-        "total_files": decode_stats["files"] + encode_stats["files"],
-        "total_tests": decode_stats["tests"] + encode_stats["tests"],
+        "total_files": decode_file_count + encode_file_count,
+        "total_tests": decode_test_count + encode_test_count,
     }
 
 

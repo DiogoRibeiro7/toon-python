@@ -8,6 +8,8 @@ For Python type normalization, see test_normalization.py.
 For API testing, see test_api.py.
 """
 
+import pytest
+
 from toon_format import encode
 from toon_format.types import EncodeOptions
 
@@ -110,7 +112,7 @@ class TestPythonOptionsHandling:
         """Test that invalid options don't cause crashes."""
         # Should either accept or raise a clear error, not crash
         try:
-            result = encode([1, 2, 3], {"delimiter": 123})  # Invalid type
+            result = encode([1, 2, 3], EncodeOptions(delimiter=123))  # type: ignore[typeddict-item]
             # If accepted, verify output exists
             assert result is not None
         except (TypeError, ValueError, AttributeError):
@@ -121,7 +123,7 @@ class TestPythonOptionsHandling:
         """Test that None option values are handled gracefully."""
         # Should use defaults for None values or raise clear error
         try:
-            result = encode([1, 2, 3], {"delimiter": None})
+            result = encode([1, 2, 3], EncodeOptions(delimiter=None))  # type: ignore[typeddict-item]
             assert result is not None
         except (TypeError, ValueError, AttributeError):
             # Also acceptable to reject None
@@ -130,7 +132,7 @@ class TestPythonOptionsHandling:
     def test_encode_with_extra_unknown_options(self):
         """Test that unknown options are ignored (forward compatibility)."""
         # Unknown options should be ignored, not cause errors
-        result = encode([1, 2, 3], {"delimiter": ",", "unknown_option": "value"})
+        result = encode([1, 2, 3], EncodeOptions(delimiter=",", unknown_option="value"))  # type: ignore[typeddict-unknown-key]
         assert result == "[3]: 1,2,3"
 
 
@@ -164,6 +166,7 @@ class TestNumberPrecisionSpec:
         from toon_format import decode
 
         decoded = decode(toon)
+        assert isinstance(decoded, dict)
 
         # Should round-trip with fidelity
         assert decoded["float"] == original["float"]
@@ -198,3 +201,56 @@ class TestNumberPrecisionSpec:
         assert "z:" in lines[0]
         assert "a:" in lines[1]
         assert "m:" in lines[2]
+
+
+class TestIssueRegressions:
+    """Regression tests for reported GitHub issues.
+    
+    Each test is marked with @pytest.mark.issue_regression and references
+    the specific GitHub issue number for traceability.
+    """
+
+    @pytest.mark.issue_regression
+    def test_issue_30_comma_delimiter_not_shown_in_tabular_brackets(self) -> None:
+        """Tabular arrays should use [N]{cols}: not [N,]{cols}: with comma delimiter.
+
+        GitHub Issue #30: https://github.com/toon-format/toon-python/issues/30
+        The comma delimiter is the default and should not appear in the length bracket.
+        Non-comma delimiters (pipe, tab) should appear in the bracket.
+        """
+        # Test with default comma delimiter (should be implicit, not shown)
+        data = [{"id": 1, "name": "Alice"}, {"id": 2, "name": "Bob"}]
+        result = encode(data)
+
+        # Verify correct format without delimiter in bracket
+        assert "[2]{id,name}:" in result
+        assert "[2,]{" not in result, "Comma should not appear in bracket"
+        assert ",]{" not in result, "Comma should not appear before closing bracket"
+
+        # Test with pipe delimiter - should be explicit
+        result_pipe = encode(data, {"delimiter": "|"})
+        assert "[2|]{id|name}:" in result_pipe, "Pipe delimiter should appear in bracket"
+        assert "[2]{" not in result_pipe, "Bracket should include pipe delimiter"
+
+        # Test with tab delimiter - should be explicit
+        result_tab = encode(data, {"delimiter": "\t"})
+        assert "[2\t]{" in result_tab, "Tab delimiter should appear in bracket"
+
+    @pytest.mark.issue_regression
+    def test_issue_30_comma_not_shown_in_primitive_array_brackets(self) -> None:
+        """Primitive arrays should use [N]: not [N,]: with comma delimiter.
+
+        Related to GitHub Issue #30.
+        Comma is the default delimiter and should be implicit in array length brackets.
+        """
+        # Test inline primitive array with default comma delimiter
+        data = [1, 2, 3]
+        result = encode(data)
+
+        # Verify correct format
+        assert "[3]:" in result, "Should use [N]: format for default delimiter"
+        assert "[3,]:" not in result, "Comma should not appear in bracket"
+
+        # Test with pipe delimiter - should be explicit
+        result_pipe = encode(data, {"delimiter": "|"})
+        assert "[3|]:" in result_pipe, "Non-default delimiter should appear in bracket"

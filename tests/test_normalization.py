@@ -17,6 +17,7 @@ official fixtures from https://github.com/toon-format/spec
 """
 
 from decimal import Decimal
+from typing import cast
 
 from toon_format import decode, encode
 
@@ -38,7 +39,7 @@ class TestLargeIntegers:
         assert "bignum: 1152921504606846976" in result
 
         # Round-trip verification
-        decoded = decode(result)
+        decoded = cast(dict, decode(result))  # type: ignore[type-arg]
         assert decoded["bignum"] == 1152921504606846976
 
     def test_large_negative_integer(self) -> None:
@@ -48,7 +49,7 @@ class TestLargeIntegers:
         assert "neg: -1152921504606846976" in result
 
         # Round-trip verification
-        decoded = decode(result)
+        decoded = cast(dict, decode(result))  # type: ignore[type-arg]
         assert decoded["neg"] == -1152921504606846976
 
     def test_boundary_cases(self) -> None:
@@ -96,7 +97,7 @@ class TestOctalStrings:
         assert '"0456"' in result
 
         # Round-trip verification
-        decoded = decode(result)
+        decoded = cast(list, decode(result))  # type: ignore[type-arg]
         assert decoded == ["0123", "0456"]
 
 
@@ -113,7 +114,7 @@ class TestSetOrdering:
         assert result1 == result2
 
         # Should be sorted: 1, 2, 3
-        decoded = decode(result1)
+        decoded = cast(dict, decode(result1))  # type: ignore[type-arg]
         assert decoded["tags"] == [1, 2, 3]
 
     def test_string_set_sorted(self) -> None:
@@ -121,7 +122,7 @@ class TestSetOrdering:
         data = {"items": {"zebra", "apple", "mango"}}
         result = encode(data)
 
-        decoded = decode(result)
+        decoded = cast(dict, decode(result))  # type: ignore[type-arg]
         assert decoded["items"] == ["apple", "mango", "zebra"]
 
     def test_set_ordering_consistency(self) -> None:
@@ -134,7 +135,7 @@ class TestSetOrdering:
         assert all(r == results[0] for r in results)
 
         # Should be sorted
-        decoded = decode(results[0])
+        decoded = cast(dict, decode(results[0]))  # type: ignore[type-arg]
         assert decoded["nums"] == [1, 2, 3, 5, 8, 9]
 
 
@@ -159,7 +160,7 @@ class TestNegativeZero:
         # Should not contain "-0"
         assert "-0" not in result
 
-        decoded = decode(result)
+        decoded = cast(list, decode(result))  # type: ignore[type-arg]
         # Both should be 0
         assert decoded[0] == 0
         assert decoded[1] == 0
@@ -182,7 +183,7 @@ class TestNonFiniteFloats:
 
         assert "inf: null" in result
 
-        decoded = decode(result)
+        decoded = cast(dict, decode(result))  # type: ignore[type-arg]
         assert decoded["inf"] is None
 
     def test_negative_infinity(self) -> None:
@@ -192,7 +193,7 @@ class TestNonFiniteFloats:
 
         assert "ninf: null" in result
 
-        decoded = decode(result)
+        decoded = cast(dict, decode(result))  # type: ignore[type-arg]
         assert decoded["ninf"] is None
 
     def test_nan(self) -> None:
@@ -202,7 +203,7 @@ class TestNonFiniteFloats:
 
         assert "nan: null" in result
 
-        decoded = decode(result)
+        decoded = cast(dict, decode(result))  # type: ignore[type-arg]
         assert decoded["nan"] is None
 
     def test_all_non_finite_in_array(self) -> None:
@@ -210,7 +211,7 @@ class TestNonFiniteFloats:
         data = [float("inf"), float("-inf"), float("nan"), 1.5, 2.0]
         result = encode(data)
 
-        decoded = decode(result)
+        decoded = cast(list, decode(result))  # type: ignore[type-arg]
         assert decoded == [None, None, None, 1.5, 2.0]
 
     def test_mixed_object_with_non_finite(self) -> None:
@@ -224,7 +225,7 @@ class TestNonFiniteFloats:
         }
         result = encode(data)
 
-        decoded = decode(result)
+        decoded = cast(dict, decode(result))  # type: ignore[type-arg]
         assert decoded["normal"] == 3.14
         assert decoded["inf"] is None
         assert decoded["ninf"] is None
@@ -243,7 +244,7 @@ class TestHeterogeneousSets:
         result = encode(data)
 
         # Should not crash
-        decoded = decode(result)
+        decoded = cast(dict, decode(result))  # type: ignore[type-arg]
         assert isinstance(decoded["mixed"], list)
 
     def test_heterogeneous_set_deterministic(self) -> None:
@@ -258,10 +259,10 @@ class TestHeterogeneousSets:
 
     def test_empty_set(self) -> None:
         """Empty sets should encode properly."""
-        data = {"empty": set()}
+        data: dict = {"empty": set()}
         result = encode(data)
 
-        decoded = decode(result)
+        decoded = cast(dict, decode(result))  # type: ignore[type-arg]
         assert decoded["empty"] == []
 
     def test_single_element_set(self) -> None:
@@ -269,7 +270,7 @@ class TestHeterogeneousSets:
         data = {"single": {42}}
         result = encode(data)
 
-        decoded = decode(result)
+        decoded = cast(dict, decode(result))  # type: ignore[type-arg]
         assert decoded["single"] == [42]
 
 
@@ -282,7 +283,7 @@ class TestEdgeCaseCombinations:
         data = {"big_set": {large_int, 100, 200}}
         result = encode(data)
 
-        decoded = decode(result)
+        decoded = cast(dict, decode(result))  # type: ignore[type-arg]
         # All integers stay as integers (Python has arbitrary precision)
         assert 1152921504606846976 in decoded["big_set"]
         assert 100 in decoded["big_set"]
@@ -298,7 +299,7 @@ class TestEdgeCaseCombinations:
         assert result is not None
 
         # Round-trip should work
-        decoded = decode(result)
+        decoded = cast(dict, decode(result))  # type: ignore[type-arg]
         assert "0123" in decoded
         assert decoded["0123"] == "value"
 
@@ -319,7 +320,7 @@ class TestEdgeCaseCombinations:
         assert result is not None
 
         # Should round-trip correctly
-        decoded = decode(result)
+        decoded = cast(dict, decode(result))  # type: ignore[type-arg]
         assert decoded["sets"] == [1, 2, 3]
         assert decoded["large"] == 1152921504606846976  # Integer stays as integer
         assert decoded["octal"] == "0755"
@@ -335,33 +336,33 @@ class TestPythonTypeNormalization:
     def test_tuple_to_list(self):
         """Tuples should be converted to arrays."""
         result = encode({"items": (1, 2, 3)})
-        decoded = decode(result)
+        decoded = cast(dict, decode(result))  # type: ignore[type-arg]
         assert decoded == {"items": [1, 2, 3]}
 
     def test_tuple_preserves_order(self):
         """Tuple order should be preserved in conversion."""
         result = encode({"coords": (3, 1, 4, 1, 5)})
         assert "[5]: 3,1,4,1,5" in result
-        decoded = decode(result)
+        decoded = cast(dict, decode(result))  # type: ignore[type-arg]
         assert decoded["coords"] == [3, 1, 4, 1, 5]
 
     def test_frozenset_to_sorted_list(self):
         """Frozensets should be converted to sorted arrays."""
         result = encode({"items": frozenset([3, 1, 2])})
-        decoded = decode(result)
+        decoded = cast(dict, decode(result))  # type: ignore[type-arg]
         assert decoded == {"items": [1, 2, 3]}
 
     def test_decimal_to_float(self):
         """Decimal should be converted to float."""
         result = encode({"price": Decimal("19.99")})
         assert "price: 19.99" in result
-        decoded = decode(result)
+        decoded = cast(dict, decode(result))  # type: ignore[type-arg]
         assert decoded["price"] == 19.99
 
     def test_decimal_precision_preserved(self):
         """Decimal precision should be preserved during conversion."""
         result = encode({"value": Decimal("3.14159")})
-        decoded = decode(result)
+        decoded = cast(dict, decode(result))  # type: ignore[type-arg]
         assert abs(decoded["value"] - 3.14159) < 0.00001
 
     def test_nested_python_types(self):
@@ -374,7 +375,7 @@ class TestPythonTypeNormalization:
             },
         }
         result = encode(data)
-        decoded = decode(result)
+        decoded = cast(dict, decode(result))  # type: ignore[type-arg]
 
         assert decoded["tuple_field"] == [1, 2, 3]
         assert decoded["set_field"] == [1, 2, 3]
@@ -387,7 +388,7 @@ class TestPythonTypeNormalization:
             "empty_set": set(),
         }
         result = encode(data)
-        decoded = decode(result)
+        decoded = cast(dict, decode(result))  # type: ignore[type-arg]
 
         assert decoded["empty_tuple"] == []
         assert decoded["empty_set"] == []
@@ -411,7 +412,7 @@ class TestNumericPrecision:
             "precise": 0.1 + 0.2,  # Famous floating point case
         }
         toon = encode(original)
-        decoded = decode(toon)
+        decoded = cast(dict, decode(toon))  # type: ignore[type-arg]
 
         # All numbers should round-trip with fidelity
         for key, value in original.items():

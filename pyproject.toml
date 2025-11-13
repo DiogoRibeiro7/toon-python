@@ -54,6 +54,9 @@ addopts = [
     "--strict-config",
     "-ra",
 ]
+markers = [
+    "issue_regression: marks tests as regression tests for specific GitHub issues",
+]
 
 [tool.coverage.run]
 relative_files = true

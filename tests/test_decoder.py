@@ -80,6 +80,7 @@ class TestSpecEdgeCases:
         toon = "code: 05"
         result = decode(toon)
         assert result == {"code": "05"}
+        assert isinstance(result, dict)
         assert isinstance(result["code"], str)
 
     def test_leading_zero_in_array(self):
@@ -87,6 +88,7 @@ class TestSpecEdgeCases:
         toon = "codes[3]: 01,02,03"
         result = decode(toon)
         assert result == {"codes": ["01", "02", "03"]}
+        assert isinstance(result, dict)
         assert all(isinstance(v, str) for v in result["codes"])
 
     def test_single_zero_is_number(self):
@@ -94,6 +96,7 @@ class TestSpecEdgeCases:
         toon = "value: 0"
         result = decode(toon)
         assert result == {"value": 0}
+        assert isinstance(result, dict)
         assert isinstance(result["value"], int)
 
     def test_zero_point_zero_is_number(self):
@@ -101,6 +104,7 @@ class TestSpecEdgeCases:
         toon = "value: 0.0"
         result = decode(toon)
         assert result == {"value": 0.0}
+        assert isinstance(result, dict)
         assert isinstance(result["value"], (int, float))
 
     def test_exponent_notation_accepted(self):
@@ -110,6 +114,7 @@ b: -1E+9
 c: 2.5e3
 d: -3.14E-2"""
         result = decode(toon)
+        assert isinstance(result, dict)
         assert result["a"] == 1e-6
         assert result["b"] == -1e9
         assert result["c"] == 2.5e3
@@ -119,12 +124,14 @@ d: -3.14E-2"""
         """Exponent notation in arrays."""
         toon = "values[3]: 1e2,2e-1,3E+4"
         result = decode(toon)
+        assert isinstance(result, dict)
         assert result["values"] == [1e2, 2e-1, 3e4]
 
     def test_array_order_preserved(self):
         """Array order MUST be preserved (Section 2)."""
         toon = "items[5]: 5,1,9,2,7"
         result = decode(toon)
+        assert isinstance(result, dict)
         assert result["items"] == [5, 1, 9, 2, 7]
         # Verify order is exact, not sorted
         assert result["items"] != [1, 2, 5, 7, 9]
@@ -136,6 +143,7 @@ a: 2
 m: 3
 b: 4"""
         result = decode(toon)
+        assert isinstance(result, dict)
         keys = list(result.keys())
         assert keys == ["z", "a", "m", "b"]
         # Verify order is not alphabetical

@@ -714,6 +714,17 @@ def decode_list_array(
                 result.append(item_obj)
                 continue
 
+        # Check if item_content is empty (multi-line object starting on next line)
+        if not item_content:
+            # Multi-line object: fields are on following lines at depth +1
+            nested_obj = decode_object(lines, i + 1, line.depth, strict)
+            result.append(nested_obj)
+            # Skip past the object content
+            i += 1
+            while i < len(lines) and lines[i].depth > line.depth:
+                i += 1
+            continue
+
         # Check if it's an object (has colon)
         try:
             key_str, value_str = split_key_value(item_content)
@@ -775,11 +786,7 @@ def decode_list_array(
             result.append(obj_item)
         except ToonDecodeError:
             # Not an object, must be a primitive
-            # Special case: empty content after "- " is an empty object
-            if not item_content:
-                result.append({})
-            else:
-                result.append(parse_primitive(item_content))
+            result.append(parse_primitive(item_content))
             i += 1
 
     if strict and len(result) != expected_length:
