@@ -331,9 +331,7 @@ class TestCLIMain:
         output_file = tmp_path / "output.toon"
 
         with patch("sys.stderr", new_callable=StringIO) as mock_stderr:
-            with patch(
-                "sys.argv", ["toon", str(input_file), "--check", "-o", str(output_file)]
-            ):
+            with patch("sys.argv", ["toon", str(input_file), "--check", "-o", str(output_file)]):
                 result = main()
                 assert result == 1
                 assert "Cannot specify both --check and --output" in mock_stderr.getvalue()
